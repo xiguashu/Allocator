@@ -1,16 +1,16 @@
 #pragma once
 
-/**********ÇëÔÚRelease x64ÏÂÔËĞĞ************/
+//ä»¥ä¸‹ä»£ç åœ¨VS 2015 release x64,win10 å¹³å°ä¸‹ç¼–è¯‘è¿è¡Œé€šè¿‡
 #include<iostream>
 
 #define NumOfList 16
 #define Block 256
 #define Max_size  Block*NumOfList
-#define makeup(bytes) (bytes + Block) & ~(Block - 1) //ÉêÇëµÄÄÚ´æ²»ÊÇblockµÄ±¶ÊıµÄ»°£¬ÉÏµ÷ÖÁblockµÄ±¶Êı
-#define index(size) ((size + Block - 1) / Block - 1) //¸ù¾İÉêÇëÊı¾İ¿é´óĞ¡ÕÒµ½freelistµÄÏÂ±ê
+#define makeup(bytes) (bytes + Block) & ~(Block - 1) //ç”³è¯·çš„å†…å­˜ä¸æ˜¯blockçš„å€æ•°çš„è¯ï¼Œä¸Šè°ƒè‡³blockçš„å€æ•°
+#define index(size) ((size + Block - 1) / Block - 1) //æ ¹æ®ç”³è¯·æ•°æ®å—å¤§å°æ‰¾åˆ°freelistçš„ä¸‹æ ‡
 using namespace std;
 
-union node //freelist½Úµã
+union node //freelistèŠ‚ç‚¹
 {
 	node* next;
 	char data[1];
@@ -20,14 +20,14 @@ typedef struct pool {
 	 char* first;
 	 char *last;
 	 size_t size;
-}poolptr; //ÄÚ´æ³ØÖ¸Õë
+}poolptr; //å†…å­˜æ± æŒ‡é’ˆ
 
-static poolptr pool;  //´´½¨Ò»¸öÄÚ´æ³Ø
-node* free_list[NumOfList] = { 0 }; //´´½¨freelists£¬µÚk¸öfreelistÖ¸Ïòk*block´óĞ¡µÄÄÚ´æ
+static poolptr pool;  //åˆ›å»ºä¸€ä¸ªå†…å­˜æ± 
+node* free_list[NumOfList] = { 0 }; //åˆ›å»ºfreelistsï¼Œç¬¬kä¸ªfreelistæŒ‡å‘k*blockå¤§å°çš„å†…å­˜
 
 
-static char* pool_alloc(size_t size, int& num); //´ÓÄÚ´æ³ØÉêÇësize*num´óĞ¡µÄÄÚ´æ
- static void* Refill(size_t n); //ÖØĞÂ·ÖÅä¿Õ¼ä
+static char* pool_alloc(size_t size, int& num); //ä»å†…å­˜æ± ç”³è¯·size*numå¤§å°çš„å†…å­˜
+ static void* Refill(size_t n); //é‡æ–°åˆ†é…ç©ºé—´
 
 
 
@@ -77,14 +77,14 @@ public:
 		node *t = (node*)_Ptr;
 		node** temp_list;
 		size_type size = sizeof(size_type)*_Count;
-		if (size > Max_size) //¿é´óÓÚmax_sizeÔòµ÷ÓÃ¿âº¯Êı»ØÊÕ
+		if (size > Max_size) //å—å¤§äºmax_sizeåˆ™è°ƒç”¨åº“å‡½æ•°å›æ”¶
 		{
 			::operator delete (_Ptr);
 		}
-		else //·ñÔò»ØÊÕµ½¿ÕÏĞÁ´±í
+		else //å¦åˆ™å›æ”¶åˆ°ç©ºé—²é“¾è¡¨
 		{
 			temp_list = free_list + index(size);
-			t->next = *temp_list;//ÔÚ¿ÕÏĞÁ´±íÍ·²¿²åÈët
+			t->next = *temp_list;//åœ¨ç©ºé—²é“¾è¡¨å¤´éƒ¨æ’å…¥t
 			*temp_list = t;
 
 		}
@@ -94,19 +94,19 @@ public:
 		node** temp_list;
 		node* result=NULL;
 		size_type size = sizeof(size_type)*_Count;
-		if (size > Max_size)//ÉêÇëÄÚ´æ´óÓÚÄÚ´æ³Ø×î´óÄÚ´æ
+		if (size > Max_size)//ç”³è¯·å†…å­˜å¤§äºå†…å­˜æ± æœ€å¤§å†…å­˜
 		{
 			return reinterpret_cast<pointer>(operator new (size));
 		}
 	
-		temp_list = free_list + index(size);//Ñ°ÕÒÒ»¸ö¿ÕÏĞÁ´±í
+		temp_list = free_list + index(size);//å¯»æ‰¾ä¸€ä¸ªç©ºé—²é“¾è¡¨
 		result = *temp_list;
-		if (result == NULL) //¸Ã¿ÕÏĞÁ´±íÃ»ÓĞ¿ÉÓÃÊı¾İ¿é£¬ÔòÖØĞÂ·ÖÅä¿Õ¼ä,²¢·µ»ØÖØĞÂ·ÖÅäµÄ¿Õ¼ä
+		if (result == NULL) //è¯¥ç©ºé—²é“¾è¡¨æ²¡æœ‰å¯ç”¨æ•°æ®å—ï¼Œåˆ™é‡æ–°åˆ†é…ç©ºé—´,å¹¶è¿”å›é‡æ–°åˆ†é…çš„ç©ºé—´
 		{
 			void *r = Refill(makeup(size));
 			return reinterpret_cast<pointer>(r);
 		}
-		*temp_list = result->next;//È¡³ö¿ÕÏĞ¿é£¬Á´±íÖ¸ÏòÏÂÒ»¸ö¿é
+		*temp_list = result->next;//å–å‡ºç©ºé—²å—ï¼Œé“¾è¡¨æŒ‡å‘ä¸‹ä¸€ä¸ªå—
 		return reinterpret_cast<pointer>(result);
 
 	}
@@ -131,24 +131,24 @@ static void* Refill(size_t n)
 	int num = 10;
 	node **temp_list;
 	node *result, *current, *next;
-	char * chunk = pool_alloc(n, num); //´ÓÄÚ´æ³Ønum¸ö´óĞ¡ÎªnµÄÄÚ´æ¿é
+	char * chunk = pool_alloc(n, num); //ä»å†…å­˜æ± numä¸ªå¤§å°ä¸ºnçš„å†…å­˜å—
 
 	temp_list = free_list + index(n);
-	result = (node*)chunk;//°ÑµÚÒ»¸öÄÚ´æ¿é¸øÉêÇëÕß£¬ÆäËûµÄ²åÈëµ½free list
-	*temp_list = (node*)(chunk + n); //Ö¸ÏòµÚ¶ş¸öÄÚ´æ¿é
+	result = (node*)chunk;//æŠŠç¬¬ä¸€ä¸ªå†…å­˜å—ç»™ç”³è¯·è€…ï¼Œå…¶ä»–çš„æ’å…¥åˆ°free list
+	*temp_list = (node*)(chunk + n); //æŒ‡å‘ç¬¬äºŒä¸ªå†…å­˜å—
 	next = (node*)(chunk + n);
 	int i = 1;
 	do
 	{
 		current = next;
-		next = (node*)((char*)next + n); //n¸öÎªÒ»¿é£¬Ö¸ÏòÏÂÒ»¿é
-		if (num != i + 1) //»¹²»ÊÇ×îºóÒ»¿é
+		next = (node*)((char*)next + n); //nä¸ªä¸ºä¸€å—ï¼ŒæŒ‡å‘ä¸‹ä¸€å—
+		if (num != i + 1) //è¿˜ä¸æ˜¯æœ€åä¸€å—
 		{
-			current->next = next;//ÍùÁ´±íºó¼ÓÊı¾İ¿é
+			current->next = next;//å¾€é“¾è¡¨ååŠ æ•°æ®å—
 		}
 		else
 		{
-			current->next = NULL; //Ö¸Ïò¿Õ
+			current->next = NULL; //æŒ‡å‘ç©º
 			break;
 		}
 		i++;
@@ -158,29 +158,29 @@ static void* Refill(size_t n)
 	return result;
 }
 
-static char* pool_alloc(size_t size, int& num) //´ÓÄÚ´æ³ØÉêÇësize*num´óĞ¡µÄÄÚ´æ
+static char* pool_alloc(size_t size, int& num) //ä»å†…å­˜æ± ç”³è¯·size*numå¤§å°çš„å†…å­˜
 {
 	char *result;
-	size_t require = size*num; //ÉêÇë×ÜÄÚ´æ
-	size_t left = pool.last - pool.first; //µ±Ç°ÄÚ´æ³ØµÄÄÚ´æ
+	size_t require = size*num; //ç”³è¯·æ€»å†…å­˜
+	size_t left = pool.last - pool.first; //å½“å‰å†…å­˜æ± çš„å†…å­˜
 	size_t more;
 	node** temp_list;
 	node** temp_list2;
 	
-	if (left >= require) //ÏÖÓĞ¿Õ¼ä³ä×ã
+	if (left >= require) //ç°æœ‰ç©ºé—´å……è¶³
 	{
-		result = pool.first; //Ö±½Ó·ÖÅä
-		pool.first = pool.first + require; //ÄÚ´æ³ØµÄÖ¸ÕëºóÒÆ
+		result = pool.first; //ç›´æ¥åˆ†é…
+		pool.first = pool.first + require; //å†…å­˜æ± çš„æŒ‡é’ˆåç§»
 		return result;
 	}
 
-	else //ÏÖÓĞ¿Õ¼ä²»¹»ÔòÉêÇë
+	else //ç°æœ‰ç©ºé—´ä¸å¤Ÿåˆ™ç”³è¯·
 	{
 		more = 2 * require + makeup(pool.size / 16);
-		if (left > 0) //°ÑÊ£ÓàµÄ¿é·Åµ½freelist
+		if (left > 0) //æŠŠå‰©ä½™çš„å—æ”¾åˆ°freelist
 		{
-			temp_list = free_list + index(left); //·Åµ½ÁÙÊ±Á´±íÖĞ
-			reinterpret_cast<node*>(pool.first)->next = *temp_list; //²åÈëµ½freelist
+			temp_list = free_list + index(left); //æ”¾åˆ°ä¸´æ—¶é“¾è¡¨ä¸­
+			reinterpret_cast<node*>(pool.first)->next = *temp_list; //æ’å…¥åˆ°freelist
 			*temp_list = ((node*)pool.first);
 		}
 		pool.first = (char*)malloc(more);
